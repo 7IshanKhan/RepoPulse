@@ -1,0 +1,16 @@
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+.Rproj.user/**
+.Renviron
+renv/library/
+renv/staging/
+renv/cache/
+cache/*.rds
+cache/*.RDS
+reports/*
+!reports/.gitkeep
+*.log
+.DS_Store
+Thumbs.db

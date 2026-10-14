@@ -1,0 +1,78 @@
+---
+title: "RepoPulse: Probabilistic Health Monitoring and Backlog Forecasting for Software Repositories"
+author: "RepoPulse Project Team"
+date: "2026-10-14"
+format:
+  html:
+    toc: true
+    number-sections: true
+bibliography: references.bib
+---
+
+# Executive summary
+
+RepoPulse is a local R application for studying open-source issue activity using probability and statistics. It combines issue-arrival count models, survival analysis with right censoring, and issue-level Monte Carlo simulation to estimate possible future backlog trajectories. The project is designed to make assumptions visible: unresolved issue durations are censored at the observation snapshot, and forecast uncertainty is described as conditional on fitted model parameters.
+
+# Problem statement
+
+A repository's current open-issue count is only a snapshot. It does not show whether the backlog is likely to grow, how quickly new issues tend to arrive, or how long existing issues remain unresolved. Simple averages can obscure bursty arrivals and can bias duration analysis if unresolved issues are incorrectly treated as completed. RepoPulse creates one consistent workflow for exploring these quantities and their uncertainty.
+
+# Objectives
+
+1. Construct a reproducible data pipeline for issue records from a CSV or GitHub's REST API.
+2. Describe issue arrival counts and compare Poisson and negative-binomial models.
+3. Estimate time-to-resolution using Kaplan–Meier, exponential, and Weibull survival models, retaining unresolved issues as right-censored observations.
+4. Simulate a backlog at issue level and report expected/median totals, prediction quantiles, growth probability, and Monte Carlo standard errors.
+5. Generate a report that describes findings alongside data-quality and model limitations.
+
+# Research questions
+
+- Are daily issue arrivals consistent with a Poisson baseline, or is there evidence of extra-Poisson variation?
+- What does the observed time-to-resolution distribution look like when unresolved issues are treated as censored?
+- Under the fitted arrival and resolution-time assumptions, what range of backlog outcomes appears plausible over a chosen horizon?
+
+# Data and preprocessing
+
+The application uses GitHub's documented Issues endpoint [@githubissuesapi] and an explicit canonical schema: issue identifier, creation and closure timestamps, state, labels, pull-request flag, source, observation snapshot, and update timestamp. All date-time fields are converted to UTC. Pull requests are excluded from issue-only analyses because GitHub's Issues endpoint can return both. Duplicate IDs are reduced to one record, preferring the most recent known update. Invalid creation times are removed. A close time before creation is rejected and treated as censored rather than producing a negative duration.
+
+The included data set is synthetic and uses a fixed observation snapshot of 1 October 2026 UTC. It permits an offline demonstration but is not used as evidence about any actual software project. Real GitHub queries can be limited by API access, rate limits, repository history, deletion, and the application's page cap.
+
+# Methods
+
+## Arrival models
+
+Daily counts are modelled first with a homogeneous Poisson distribution, whose MLE for the mean is the observed average count, in the general likelihood-based modelling tradition described by McCullagh and Nelder [@mccullagh1989]. A negative-binomial distribution provides a second count model with an additional dispersion parameter estimated by maximum likelihood [@hilbe2011]. AIC and a Pearson dispersion ratio are reported as diagnostic aids. They are not guarantees of a correct model.
+
+## Survival analysis
+
+For issue \(i\), let \(t_i\) denote time observed and \(\delta_i\) equal one if an actual closure time is available, zero otherwise. The contribution to the likelihood is
+
+\[
+L_i=f(t_i)^{\delta_i} S(t_i)^{1-\delta_i},
+\]
+
+and the log-likelihood is \(\ell=\sum_i\left[\delta_i\log f(t_i)+(1-\delta_i)\log S(t_i)\right]\). This right-censored likelihood is used for exponential and Weibull models. Kaplan–Meier provides a nonparametric reference curve [@kaplanmeier1958; @kleinbaumklein2012]. The parametric model with the smallest AIC is selected only among converged, estimable fits.
+
+## Monte Carlo backlog forecasting
+
+For every currently open issue, its age is measured at its observation snapshot. The fitted survival function provides a one-day conditional survival probability, \(S(a+1)/S(a)\), where \(a\) is the issue's age. An issue that resolves leaves the active set and cannot be resolved a second time. New issues are drawn from the selected daily count model and are appended after existing issues' resolution opportunity for that day. This makes the simulated backlog bookkeeping coherent. Forecast intervals express simulation variability conditional on the fitted distributions; parameter and data uncertainty are not integrated.
+
+# Validation strategy
+
+The test suite covers canonical schema and timestamp processing, duplicate/pull-request handling, invalid closure timestamps, count-model fitting and non-negative simulated arrivals, Kaplan–Meier monotonicity/bounds, explicit right censoring, and forecast reproducibility under a fixed seed. During use, the data summary, fitted status, warnings, and exported metadata should be inspected before interpreting a forecast. A large number of simulations reduces Monte Carlo error but does not correct a poorly fitting model.
+
+# Expected outputs
+
+RepoPulse exports cleaned issue data, daily arrival bins, parameter/AIC tables, an optional Monte Carlo path matrix and daily summary, a Markdown report, and charts when `ggplot2` is installed. The report records the data source label, number of records, model status, main forecast summaries, caveats, and a reproducibility seed.
+
+# Limitations and ethics of interpretation
+
+The model is descriptive, not causal. The data may omit historical issues, the stationary arrival assumption may be violated, and observed closure is only a proxy for actual resolution work. The approach does not directly model reopenings, issue severity, assignee capacity, maintainers' schedules, or changing repository policies. Forecasts should be treated as scenario estimates for analysis and teaching, not as a performance ranking of contributors or a reliable promise about an issue's completion date.
+
+# Conclusion
+
+RepoPulse connects several probability-and-statistics concepts in a running R application: count distributions, likelihood-based model comparison, survival analysis, right censoring, conditional survival, and Monte Carlo simulation. Its principal contribution is an integrated and inspectable workflow that keeps data limitations and assumptions visible beside the numerical outputs.
+
+# References
+
+The sources below support the implemented statistical methods and the API workflow. Package versions should be recorded from the environment in which the final analysis is run.
