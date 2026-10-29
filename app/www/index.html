@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>RepoPulse</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#0F172A;--ink:#e2e8f0;--mute:#94a3b8;--line:rgba(148,163,184,.16);--glass:rgba(255,255,255,.045);--c1:#22d3ee;--c2:#a78bfa;--c3:#fbbf24;--good:#34d399;--bad:#f87171;--mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;color:var(--ink);font:400 14.5px/1.55 Inter,Geist,system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(900px 520px at 88% -10%,rgba(167,139,250,.18),transparent),radial-gradient(800px 520px at -5% 8%,rgba(34,211,238,.13),transparent),var(--bg);background-attachment:fixed;min-height:100vh}
+.mono{font-family:var(--mono)}
+.shell{display:grid;grid-template-columns:210px 1fr;max-width:1240px;margin:0 auto}
+.side{padding:22px 16px;border-right:1px solid var(--line);position:sticky;top:0;align-self:start;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:17px;margin-bottom:26px}
+.brand svg{width:28px;height:28px}
+.side nav{display:flex;flex-direction:column;gap:4px}
+.side button{font:inherit;text-align:left;color:var(--mute);background:none;border:0;border-radius:8px;padding:9px 12px;cursor:pointer;transition:background .2s,color .2s}
+.side button:hover{background:var(--glass);color:var(--ink)}
+.side button[aria-current=true]{background:rgba(34,211,238,.1);color:var(--c1);box-shadow:inset 2px 0 var(--c1)}
+.col{padding:18px 22px 64px;min-width:0}
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.srch{display:flex;flex:1 1 280px;gap:8px;background:var(--glass);border:1px solid var(--line);border-radius:10px;padding:4px 4px 4px 12px;backdrop-filter:blur(10px)}
+.srch input{flex:1;min-width:0;background:none;border:0;color:var(--ink);font-size:13.5px;outline:0}
+input{font:inherit;color:var(--ink)}
+button,.btn{font:inherit;font-weight:550;border-radius:8px;cursor:pointer}
+.go{background:var(--c1);color:var(--bg);border:0;padding:7px 14px}
+.dt{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--mute)}
+.dt input{background:var(--glass);border:1px solid var(--line);border-radius:8px;padding:6px 8px;color-scheme:dark;font-size:13px}
+.rep{position:relative;overflow:hidden;z-index:0;background:transparent;color:var(--c1);border:1px solid var(--c1);padding:8px 14px;transition:color .3s}
+.rep::before{content:"";position:absolute;inset:0;background:var(--c1);transform:translateX(-101%);transition:transform .35s ease;z-index:-1}
+.rep:hover{color:var(--bg)}.rep:hover::before{transform:none}
+:focus-visible{outline:2px solid var(--c1);outline-offset:2px}
+.sw{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--mute);cursor:pointer}
+.sw input{position:absolute;opacity:0}
+.sw span{width:34px;height:20px;border-radius:12px;background:rgba(148,163,184,.3);position:relative;transition:background .25s}
+.sw span::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .25s}
+.sw input:checked+span{background:var(--c2)}.sw input:checked+span::after{transform:translateX(14px)}
+.sw input:focus-visible+span{outline:2px solid var(--c1);outline-offset:2px}
+#status{font-size:12.5px;color:var(--mute);margin:10px 2px 14px}
+#status.err{color:var(--bad);font-weight:600}
+.card{position:relative;background:var(--glass);border:1px solid var(--line);border-radius:14px;padding:18px 20px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 8px 30px rgba(2,6,23,.35)}
+.grid{display:grid;gap:14px}
+.g1{grid-template-columns:minmax(240px,300px) 1fr}
+.g3{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+h2{font-size:19px;margin:2px 0 4px;font-weight:650}
+.sub{color:var(--mute);font-size:13px;margin:0 0 12px;max-width:70ch}
+.lab{color:var(--mute);font-size:12.5px;display:flex;align-items:center;gap:6px}
+.stat b{display:block;font:650 30px/1.2 var(--mono);margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.tr{font-size:12.5px;color:var(--mute)}
+.tr i{font-style:normal;display:inline-block}
+.tr.good{color:var(--good)}.tr.warn{color:var(--c3)}
+.health{transition:background-color .7s,border-color .7s;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.health[data-s=good]{background:rgba(52,211,153,.10);border-color:rgba(52,211,153,.35)}
+.health[data-s=warn]{background:rgba(251,191,36,.11);border-color:rgba(251,191,36,.4)}
+.health[data-s=bad]{background:rgba(248,113,113,.11);border-color:rgba(248,113,113,.4)}
+.ring{position:relative;width:128px;height:128px;flex:none}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:9;stroke-linecap:round}
+.ring .bg{stroke:rgba(148,163,184,.18)}
+.ring .fg{stroke:var(--c1);stroke-dasharray:326.7;stroke-dashoffset:326.7;transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1),stroke .7s}
+.health[data-s=warn] .fg{stroke:var(--c3)}.health[data-s=bad] .fg{stroke:var(--bad)}.health[data-s=good] .fg{stroke:var(--good)}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font:650 34px var(--mono)}
+.health h3{margin:0;font-size:17px}.health p{margin:4px 0 0;color:var(--mute);font-size:13px;max-width:26ch}
+.q{position:relative;width:17px;height:17px;border-radius:50%;border:1px solid var(--mute);background:none;color:var(--mute);font-size:10.5px;padding:0;line-height:1;cursor:help;flex:none}
+.q::after{content:attr(data-tip);position:absolute;left:50%;bottom:calc(100% + 8px);width:230px;transform:translate(-50%,4px) scale(.97);background:#1e293b;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:400 12.5px/1.45 Inter,system-ui,sans-serif;text-align:left;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:20;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.q:hover::after,.q:focus-visible::after{opacity:1;transform:translate(-50%,0)}
+svg{width:100%;height:auto;display:block}
+svg text{fill:var(--mute);font:11px Inter,system-ui,sans-serif}
+.leg{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:12.5px;color:var(--mute);margin-top:8px;align-items:center}
+.leg i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.draw path[fill=none]:not([stroke-dasharray]){stroke-dasharray:1;stroke-dashoffset:1;animation:dr 1.3s ease forwards}
+@keyframes dr{to{stroke-dashoffset:0}}
+.ctl{display:flex;flex-wrap:wrap;gap:16px 22px;align-items:end;margin-bottom:14px}
+.ctl label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--mute)}
+.ctl select,.ctl input[type=number]{background:var(--glass);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:7px 9px;width:110px}
+.sl{min-width:220px;flex:1 1 220px}.sl output{float:right;font-family:var(--mono);color:var(--ink)}
+input[type=range]{accent-color:var(--c2);width:100%}
+.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);padding:7px 12px}
+dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px 22px;margin:16px 0 0;padding-top:14px;border-top:1px solid var(--line)}
+dt{color:var(--mute);font-size:12.5px}dd{margin:0;font:650 19px var(--mono)}
+#flowc{position:relative}
+.tip{position:absolute;top:14px;z-index:5;background:#1e293b;border:1px solid var(--line);border-radius:10px;padding:8px 11px;font-size:12.5px;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.45);white-space:nowrap}
+.tip.pop{animation:pop .28s cubic-bezier(.3,1.7,.5,1)}
+@keyframes pop{from{transform:scale(.88) translateY(6px);opacity:.3}to{transform:none;opacity:1}}
+#gl{position:absolute;top:10px;bottom:34px;width:1px;background:rgba(148,163,184,.45);pointer-events:none}
+.skel{position:absolute;inset:0;border-radius:inherit;display:none;z-index:3;background:linear-gradient(90deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.1) 50%,rgba(255,255,255,.03) 100%);background-size:220% 100%;animation:sh 1.3s linear infinite}
+@keyframes sh{from{background-position:120% 0}to{background-position:-120% 0}}
+.loading .skel{display:block}.loading .card>*:not(.skel){opacity:0}
+#adv{display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s ease;margin-top:14px}
+#adv.on{grid-template-rows:1fr}
+#adv>div{overflow:hidden;min-height:0}
+#adv .card{margin-top:0;margin-bottom:14px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font:12.5px var(--mono)}
+th,td{text-align:left;padding:8px 14px 8px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--mute);font-weight:500}
+tr.best td:first-child::after{content:"best fit";margin-left:8px;font:500 10.5px Inter,sans-serif;color:var(--c1);border:1px solid var(--c1);border-radius:10px;padding:1px 7px}
+.note{color:var(--mute);font-size:12.5px;max-width:74ch;margin-top:10px}
+.empty{text-align:center;padding:48px 20px}
+.empty h2{font-size:22px}.empty .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+#file{position:absolute;opacity:0;width:1px;height:1px}
+#file:focus-visible+.btn{outline:2px solid var(--c1);outline-offset:2px}
+code{font-family:var(--mono);font-size:12px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.draw path{stroke-dashoffset:0!important}}
+@media (max-width:860px){.shell{grid-template-columns:1fr}.side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:12px 16px}.brand{margin-bottom:10px}.side nav{flex-direction:row;overflow-x:auto}.side button{white-space:nowrap}.g1{grid-template-columns:1fr}.col{padding:14px 14px 48px}}
+@media print{:root{--ink:#111;--mute:#444;--bg:#fff;--glass:#fff;--line:#ccc}body{background:#fff}.side,.top,.ctl,.sw,#empty,.q,.skel{display:none!important}.view{display:block!important}.card{backdrop-filter:none;box-shadow:none;break-inside:avoid;background:#fff}#adv{grid-template-rows:1fr}.shell{display:block}}
+@keyframes pl{0%,100%{transform:translateY(0);opacity:1}50%{transform:translateY(2px);opacity:.5}}</style></head><body>
+<div class="shell">
+<aside class="side"><div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#22d3ee"/><path d="M4 17h6l3-8 5 15 3-7h7" fill="none" stroke="#0F172A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>RepoPulse</div>
+<nav aria-label="Views"><button data-v="1">Health overview</button><button data-v="2">Intake vs. resolution</button><button data-v="3">Monte Carlo forecaster</button></nav></aside>
+<div class="col">
+<header class="top">
+<div class="srch"><input id="repo" class="mono" type="text" placeholder="github.com/owner/repository" aria-label="GitHub repository URL"><button class="go" id="gh">Analyze</button></div>
+<label class="dt">From <input type="date" id="d0" aria-label="Start date"></label><label class="dt">To <input type="date" id="d1" aria-label="End date"></label>
+<label class="sw"><input type="checkbox" id="advt" role="switch"><span></span>Advanced view</label>
+<button class="rep" id="rep">Generate report</button>
+</header>
+<div id="status" role="status">Paste a repository to begin.</div>
+<div id="empty" class="card empty"><h2>No repository loaded</h2><p class="sub" style="margin:6px auto">Paste a GitHub repository above, upload an issues CSV (issue_id, created_at, state), or look around with sample data.</p><div class="row"><button class="go" id="demo">Use sample data</button><input type="file" id="file" accept=".csv,text/csv"><label for="file" class="btn ghost">Upload CSV</label></div></div>
+<div id="app" hidden>
+<section class="view" id="v1">
+<div class="grid g1">
+<div class="card health" id="hc" data-s="good"><i class="skel"></i><div class="ring"><svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="52"/><circle class="fg" id="rg" cx="60" cy="60" r="52"/></svg><b id="hs">0</b></div><div><div class="lab">Health score <button class="q" data-tip="A 0–100 summary of how well the team keeps up with new issues, how old open issues are, and how likely the backlog is to keep growing.">?</button></div><h3 id="hl">Healthy</h3><p id="hp"></p></div></div>
+<div class="grid g3">
+<div class="card stat"><i class="skel"></i><span class="lab">Total open issues <button class="q" data-tip="Issues that are still unresolved in the selected date range.">?</button></span><b id="s1"></b><span class="tr" id="t1"></span></div>
+<div class="card stat"><i class="skel"></i><span class="lab">Avg resolution time <button class="q" data-tip="Average days from an issue being opened to it being closed, for issues that have been closed.">?</button></span><b id="s2"></b><span class="tr" id="t2"></span></div>
+<div class="card stat"><i class="skel"></i><span class="lab">Intake rate <button class="q" data-tip="Average number of new issues opened per day.">?</button></span><b id="s3"></b><span class="tr" id="t3"></span></div>
+</div></div>
+<p class="note">Trends compare the latest 30 days (14 days for intake) with the period before.</p>
+</section>
+<section class="view" id="v2" hidden><div class="card"><i class="skel"></i><h2>Intake vs. resolution</h2><p class="sub">Issues opened and closed per day, smoothed over 7 days. Hover to see exact numbers.</p>
+<div id="flowc"><div id="flow" class="draw"></div><div id="gl" hidden></div><div class="tip" id="tip" hidden></div></div><div class="leg"><span><i style="background:var(--c1)"></i>Opened (intake)</span><span><i style="background:var(--c2)"></i>Closed (resolution)</span></div></div></section>
+<section class="view" id="v3" hidden><div class="card"><i class="skel"></i><h2>Monte Carlo forecaster</h2><p class="sub">Thousands of simulated futures for the open backlog. Drag a slider to test a scenario.</p>
+<div class="ctl">
+<label class="sl">Team velocity <output id="vo">100%</output><input type="range" id="vel" min="50" max="200" value="100" aria-label="Team velocity"></label>
+<label class="sl">Intake surge <output id="so">100%</output><input type="range" id="sur" min="50" max="300" value="100" aria-label="Intake surge"></label>
+<label>Days ahead<select id="hz"><option>14</option><option selected>30</option><option>60</option><option>90</option></select></label>
+<label>Alert level<input type="number" id="th" min="0" placeholder="optional"></label>
+<button class="ghost" id="rs">Reset</button></div>
+<div id="fan" class="draw"></div>
+<div class="leg"><span><i style="background:#e2e8f0"></i>History</span><span><i style="background:var(--c2)"></i>P50 <button class="q" data-tip="The middle outcome: half of the simulated futures end up below this line and half above.">?</button></span><span><i style="background:var(--c3)"></i>P90 <button class="q" data-tip="A pessimistic outcome: only 1 in 10 simulated futures ends up with a bigger backlog than this.">?</button></span><span>Shaded cone: 80% and 50% of outcomes</span></div>
+<dl id="fs"></dl></div></section>
+<div id="adv"><div inert><div class="card" style="margin-top:14px"><h2>Arrival model</h2><p class="sub">Daily issue counts against Poisson and negative-binomial fits.</p><div id="ar"></div><div class="leg" id="arl"></div><div class="scroll" id="art"></div></div>
+<div class="card"><h2>Resolution model</h2><p class="sub">Kaplan–Meier curve with exponential and Weibull fits (open issues are censored).</p><div id="sv"></div><div class="leg" id="svl"></div><div class="scroll" id="svt"></div></div></div></div>
+</div></div></div>
+<script>
+const $=s=>document.querySelector(s),DAY=864e5;
+const fmt=(v,d=1)=>Number.isFinite(v)?v.toLocaleString('en',{maximumFractionDigits:d}):'n/a';
+const pct=v=>(v*100).toFixed(1)+'%';
+function rng(seed){let a=seed>>>0;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function lg(x){const c=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,.1208650973866179e-2,-.5395239384953e-5];let y=x,t=x+5.5;t-=(x+.5)*Math.log(t);let s=1.000000000190015;for(let j=0;j<6;j++)s+=c[j]/++y;return-t+Math.log(2.5066282746310005*s/x)}
+function norm(R){return Math.sqrt(-2*Math.log(R()||1e-12))*Math.cos(6.283185307*R())}
+function gam(a,sc,R){if(a<1)return gam(a+1,sc,R)*Math.pow(R()||1e-12,1/a);const d=a-1/3,c=1/Math.sqrt(9*d);for(;;){let x,v;do{x=norm(R);v=1+c*x}while(v<=0);v=v*v*v;const u=R();if(Math.log(u||1e-12)<.5*x*x+d-d*v+d*Math.log(v))return d*v*sc}}
+function pois(l,R){if(l<=0)return 0;if(l>=30)return Math.max(0,Math.round(l+Math.sqrt(l)*norm(R)));const L=Math.exp(-l);let k=0,p=1;do{k++;p*=R()}while(p>L);return k-1}
+function parseCSV(t){t=t.replace(/^\uFEFF/,'');const rows=[];let r=[],f='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==','){r.push(f);f=''}else if(c=='\n'||c=='\r'){if(c=='\r'&&t[i+1]=='\n')i++;r.push(f);f='';if(r.length>1||r[0]!=='')rows.push(r);r=[]}else f+=c}
+if(f!==''||r.length){r.push(f);rows.push(r)}
+const h=(rows.shift()||[]).map(x=>x.trim().toLowerCase());return rows.map(a=>Object.fromEntries(h.map((k,i)=>[k,(a[i]||'').trim()])))}
+function demoRows(){const R=rng(42),days=180,obs=Date.UTC(2026,9,1),s0=obs-days*DAY,rows=[];let id=1;
+for(let d=0;d<days;d++){const wd=new Date(s0+d*DAY).getUTCDay(),w=wd>0&&wd<6?1.35:.4,n=pois(gam(4,3.1*w/4,R),R);
+for(let j=0;j<n;j++){const c=s0+(d+R())*DAY,dur=14*Math.pow(-Math.log(R()||1e-12),1/.8)*DAY,cl=c+dur;
+rows.push({issue_id:id++,created_at:new Date(c).toISOString(),state:cl<=obs?'closed':'open',closed_at:cl<=obs?new Date(cl).toISOString():'',observed_at:new Date(obs).toISOString()})}}
+return rows}
+function normalize(rows){
+if(!rows.length||['issue_id','created_at','state'].some(k=>!(k in rows[0])))throw new Error('This CSV needs the columns issue_id, created_at and state.');
+const m=new Map();let pr=0,bad=0;
+for(const r of rows){if(/^(true|t|1|yes)$/i.test(r.is_pull_request||'')){pr++;continue}
+const c=Date.parse(r.created_at);if(isNaN(c)){bad++;continue}
+const u=Date.parse(r.updated_at||'')||0,p=m.get(r.issue_id);if(p&&p.u>u)continue;
+m.set(r.issue_id,{c,u,st:(r.state||'').toLowerCase(),cl:Date.parse(r.closed_at||''),ob:Date.parse(r.observed_at||'')})}
+let mx=0;for(const i of m.values())mx=Math.max(mx,i.c,i.cl||0,i.ob||0);
+const is=[];for(const i of m.values()){const closed=i.st==='closed';
+if(closed&&isNaN(i.cl)){bad++;continue}
+const ok=closed&&i.cl>=i.c;is.push({c:i.c,cl:ok?i.cl:null,ob:isNaN(i.ob)?mx:i.ob,open:!ok})}
+if(is.length<10)throw new Error('Fewer than 10 usable issues were found, which is too few to fit models.');
+return{is,pr,bad}}
+function golden(f,a,b){const g=.6180339887;let x1=b-g*(b-a),x2=a+g*(b-a),f1=f(x1),f2=f(x2);for(let i=0;i<80;i++){if(f1<f2){a=x1;x1=x2;f1=f2;x2=a+g*(b-a);f2=f(x2)}else{b=x2;x2=x1;f2=f1;x1=b-g*(b-a);f1=f(x1)}}return(a+b)/2}
+const nbl=(y,mu,r)=>lg(y+r)-lg(r)-lg(y+1)+r*Math.log(r/(r+mu))+(mu>0?y*Math.log(mu/(r+mu)):0);
+function fitArr(cnt){const n=cnt.length,mu=cnt.reduce((a,b)=>a+b,0)/n,m=Math.max(mu,1e-9);
+const llP=cnt.reduce((s,y)=>s+y*Math.log(m)-m-lg(y+1),0);
+const lr=golden(x=>cnt.reduce((s,y)=>s+nbl(y,m,Math.exp(x)),0),-3,10),r=Math.exp(lr),llN=cnt.reduce((s,y)=>s+nbl(y,m,r),0);
+const disp=cnt.reduce((s,y)=>s+(y-m)**2,0)/m/(n-1);
+return{n,mu:m,r,llP,llN,aicP:2-2*llP,aicN:4-2*llN,disp,nb:4-2*llN<2-2*llP}}
+function fitSurv(is){const t=is.map(i=>Math.max(((i.cl||i.ob)-i.c)/DAY,.01)),d=is.map(i=>i.cl?1:0),D=d.reduce((a,b)=>a+b,0);
+if(D<3)throw new Error('Fewer than 3 resolved issues, so resolution models can’t be fitted.');
+const sumT=t.reduce((a,b)=>a+b,0),rate=D/sumT,llE=D*Math.log(rate)-rate*sumT;
+const sd=t.reduce((s,x,i)=>s+d[i]*Math.log(x),0)/D;
+const g=k=>{let a=0,b=0;for(const x of t){const p=Math.pow(x,k);a+=p*Math.log(x);b+=p}return a/b-1/k-sd};
+let lo=.05,hi=10;for(let i=0;i<80;i++){const mid=(lo+hi)/2;g(mid)<0?lo=mid:hi=mid}
+const k=(lo+hi)/2,s=Math.pow(t.reduce((a,x)=>a+Math.pow(x,k),0)/D,1/k);
+const llW=t.reduce((a,x,i)=>a+d[i]*(Math.log(k)-k*Math.log(s)+(k-1)*Math.log(x))-Math.pow(x/s,k),0);
+const ord=t.map((x,i)=>i).sort((a,b)=>t[a]-t[b]);let atRisk=t.length,S=1;const km=[[0,1]];
+for(let i=0;i<ord.length;){let j=i,ev=0;while(j<ord.length&&t[ord[j]]===t[ord[i]]){ev+=d[ord[j]];j++}
+if(ev){S*=1-ev/atRisk;km.push([t[ord[i]],S])}atRisk-=j-i;i=j}
+const aicE=2-2*llE,aicW=4-2*llW,wb=aicW<aicE;
+const Sf=wb?a=>Math.exp(-Math.pow(a/s,k)):a=>Math.exp(-rate*a);
+const med=(km.find(p=>p[1]<=.5)||[NaN])[0];
+return{t,D,rate,llE,aicE,k,s,llW,aicW,wb,Sf,km,med,tmax:Math.max(...t)}}
+const ST={};
+function analyze(is){
+let obs=0,min=Infinity;for(const i of is){obs=Math.max(obs,i.ob);min=Math.min(min,i.c)}
+const s0=Math.floor(min/DAY)*DAY,n=Math.floor((obs-s0)/DAY);
+if(n<14)throw new Error('The data spans fewer than 14 days, which is too short to model.');
+const cnt=new Array(n).fill(0),cr=new Array(n).fill(0),cc=new Array(n).fill(0);
+for(const i of is){const a=Math.floor((i.c-s0)/DAY);if(a<n){cnt[a]++;cr[a]++}
+if(i.cl){const b=Math.floor((i.cl-s0)/DAY);if(b<n)cc[b]++}}
+const hist=[];let o=0;for(let d=0;d<n;d++){o+=cr[d]-cc[d];hist.push([d-n,o])}
+const open=is.filter(i=>i.open),ages=open.map(i=>Math.max((i.ob-i.c)/DAY,0));
+ST.is=is;ST.cc=cc;ST.s0=s0;ST.obs=obs;ST.cnt=cnt;ST.hist=hist;ST.ages=ages;ST.arr=fitArr(cnt);ST.sv=fitSurv(is);ST.days=n}
+const tbl=(h,r,best)=>`<table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${r.map((x,i)=>`<tr${i===best?' class="best"':''}>${x.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+function ticks(a,b,n=5){const st=Math.pow(10,Math.floor(Math.log10((b-a)/n||1))),e=[1,2,5,10].map(m=>m*st).find(s=>(b-a)/s<=n)||st*10,o=[];for(let v=Math.ceil(a/e-1e-9)*e;v<=b+1e-9;v+=e)o.push(+v.toFixed(6));return o}
+function chart(o){const w=680,h=270,m={l:46,r:12,t:10,b:34},[x0,x1]=o.x,[y0,y1]=o.y,X=v=>m.l+(v-x0)/(x1-x0)*(w-m.l-m.r),Y=v=>h-m.b-(v-y0)/(y1-y0)*(h-m.t-m.b);
+let s=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${o.label}">`;
+for(const v of ticks(y0,y1))s+=`<line x1="${m.l}" x2="${w-m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${m.l-6}" y="${Y(v)+4}" text-anchor="end">${v}</text>`;
+for(const v of ticks(x0,x1,7))s+=`<text x="${X(v)}" y="${h-m.b+16}" text-anchor="middle">${v}</text>`;
+s+=`<text x="${(m.l+w-m.r)/2}" y="${h-4}" text-anchor="middle">${o.xl}</text>`;
+const P=p=>p.map((q,i)=>(i?'L':'M')+X(q[0]).toFixed(1)+' '+Y(q[1]).toFixed(1)).join('');
+for(const it of o.items){
+if(it.t==='area')s+=`<path d="${P(it.up)}${P([...it.lo].reverse()).replace('M','L')}Z" fill="${it.c}" opacity=".18"/>`;
+else if(it.t==='bars'){const bw=(w-m.l-m.r)/(x1-x0)*.8;for(const q of it.pts)s+=`<rect x="${X(q[0])-bw/2}" y="${Y(q[1])}" width="${bw}" height="${Math.max(0,Y(0)-Y(q[1]))}" fill="${it.c}" opacity=".35"/>`}
+else if(it.t==='vline')s+=`<line x1="${X(it.x)}" x2="${X(it.x)}" y1="${m.t}" y2="${h-m.b}" stroke="var(--mute)" stroke-dasharray="3 4"/>`;
+else s+=`<path pathLength="1" d="${P(it.pts)}" fill="none" stroke="${it.c}" stroke-width="2.2" ${it.d?'stroke-dasharray="6 4"':''}/>`}
+return s+'</svg>'}
+const leg=a=>a.map(([n,c])=>`<span><i style="background:${c}"></i>${n}</span>`).join('');
+function renderArr(){const{cnt,arr}=ST,mx=Math.max(...cnt),f=new Array(mx+1).fill(0);cnt.forEach(y=>f[y]++);
+const pmfP=k=>Math.exp(k*Math.log(arr.mu)-arr.mu-lg(k+1)),pmfN=k=>Math.exp(nbl(k,arr.mu,arr.r)),ks=[...Array(mx+1).keys()],n=arr.n;
+const top=Math.max(...f.map(v=>v/n),...ks.map(pmfN),...ks.map(pmfP))*1.1;
+$('#ar').innerHTML=chart({label:'Daily issue counts against fitted Poisson and negative-binomial models',x:[-.7,mx+.7],y:[0,+top.toFixed(2)],xl:'issues opened per day',items:[{t:'bars',c:'var(--mute)',pts:ks.map(k=>[k,f[k]/n])},{pts:ks.map(k=>[k,pmfP(k)]),c:'var(--c3)'},{pts:ks.map(k=>[k,pmfN(k)]),c:'var(--c1)'}]});
+$('#arl').innerHTML=leg([['Observed share of days','var(--mute)'],['Poisson','var(--c3)'],['Negative binomial','var(--c1)']]);
+$('#art').innerHTML=tbl(['Model','Parameters','Log-likelihood','AIC'],[['Poisson','mean '+fmt(arr.mu,2),fmt(arr.llP,1),fmt(arr.aicP,1)],['Negative binomial','mean '+fmt(arr.mu,2)+', size '+(arr.r>1e4?'very large':fmt(arr.r,2)),fmt(arr.llN,1),fmt(arr.aicN,1)]],arr.nb?1:0)+`<p class="note">Dispersion ratio ${fmt(arr.disp,2)} (about 1 means Poisson-like; well above 1 means days vary more than Poisson allows). Based on ${arr.n} days.</p>`}
+function renderSurv(){const sv=ST.sv,T=Math.min(sv.tmax,Math.max(...sv.km.map(p=>p[0]))*1.05||sv.tmax),km=[];let pv=1;for(const[t,s]of sv.km){km.push([t,pv],[t,s]);pv=s}km.push([T,pv]);
+const xs=[...Array(81).keys()].map(i=>i*T/80);
+$('#sv').innerHTML=chart({label:'Kaplan-Meier survival curve with exponential and Weibull fits',x:[0,+T.toFixed(0)],y:[0,1],xl:'days since opened',items:[{pts:xs.map(t=>[t,Math.exp(-sv.rate*t)]),c:'var(--c3)',d:1},{pts:xs.map(t=>[t,Math.exp(-Math.pow(t/sv.s,sv.k))]),c:'var(--c2)',d:1},{pts:km,c:'var(--c1)'}]});
+$('#svl').innerHTML=leg([['Kaplan–Meier','var(--c1)'],['Exponential','var(--c3)'],['Weibull','var(--c2)']]);
+$('#svt').innerHTML=tbl(['Model','Parameters','Log-likelihood','AIC'],[['Exponential','rate '+fmt(sv.rate,4)+' per day',fmt(sv.llE,1),fmt(sv.aicE,1)],['Weibull','shape '+fmt(sv.k,2)+', scale '+fmt(sv.s,1)+' days',fmt(sv.llW,1),fmt(sv.aicW,1)]],sv.wb?1:0)+`<p class="note">${sv.D} resolved and ${sv.t.length-sv.D} censored issues. ${sv.wb?'Weibull':'Exponential'} is used in the forecast.${sv.wb?(sv.k<1?' Shape below 1 means issues that stay open get harder to close.':' Shape above 1 means resolution gets more likely as issues age.'):''}</p>`}
+
+const $$=s=>[...document.querySelectorAll(s)],iso=t=>new Date(t).toISOString().slice(0,10),ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const C={vi:'#a78bfa',am:'#fbbf24'};let ALL=[],SCORE=0,CUR=null,TW=0,FL=null,HZ=30;
+const skel=on=>document.body.classList.toggle('loading',on),reduced=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
+function view(n){$$('.view').forEach(v=>v.hidden=v.id!=='v'+n);$$('.side button').forEach(b=>b.setAttribute('aria-current',b.dataset.v==n))}
+function trend(id,cur,prev,goodDown,unit){const el=$(id);if(prev==null||!(prev>0)||cur==null){el.textContent='';return}
+const ch=(cur-prev)/prev,dn=ch<0,good=goodDown?dn:!dn&&false;const cls=Math.abs(ch)<.005?'':(goodDown?(dn?'good':'warn'):(dn?'':'warn'));
+el.className='tr '+cls;el.innerHTML=Math.abs(ch)<.005?'No change':`<i style="${cls?'animation:pl 1.4s ease-in-out infinite':''}">${dn?'▼':'▲'}</i> ${Math.abs(ch*100).toFixed(0)}% ${unit}`}
+const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+function renderStats(){const{is,cnt,hist,ages,arr,sv,days}=ST,n=days,now=ST.obs;
+$('#s1').textContent=ages.length;trend('#t1',ages.length,hist[Math.max(0,n-31)][1],true,'vs 30 days ago');
+const dur=i=>(i.cl-i.c)/DAY,cl=is.filter(i=>i.cl),avg=mean(cl.map(dur));
+$('#s2').textContent=avg==null?'n/a':fmt(avg)+'d';
+trend('#t2',mean(cl.filter(i=>i.cl>now-30*DAY).map(dur)),mean(cl.filter(i=>i.cl<=now-30*DAY&&i.cl>now-60*DAY).map(dur)),true,'vs prior 30 days');
+$('#s3').textContent=fmt(arr.mu,2)+'/d';
+trend('#t3',mean(cnt.slice(-14)),mean(cnt.slice(-28,-14)),false,'vs prior 14 days')}
+const ma=(a,w=7)=>a.map((_,i)=>mean(a.slice(Math.max(0,i-w+1),i+1)));
+function renderFlow(){const{cnt,cc,s0}=ST,n=cnt.length,a=ma(cnt),b=ma(cc.slice(0,n)),ym=Math.max(...a,...b)*1.15||1;FL={n,a:cnt,b:cc,s0,ma:a,mb:b};
+$('#flow').innerHTML=chart({label:'Issues opened and closed per day',x:[0,n-1],y:[0,+ym.toFixed(1)],xl:'days since first issue in range',items:[{pts:a.map((v,i)=>[i,v]),c:'#22d3ee'},{pts:b.map((v,i)=>[i,v]),c:C.vi}]})}
+function tipMove(e){if(!FL)return;const box=$('#flowc'),svg=box.querySelector('svg'),r=svg.getBoundingClientRect(),vx=(e.clientX-r.left)/r.width*680,k=Math.round((vx-46)/622*(FL.n-1)),tip=$('#tip'),gl=$('#gl');
+if(k<0||k>=FL.n){tip.hidden=gl.hidden=true;return}
+if(tip.dataset.k!=k){tip.dataset.k=k;tip.classList.remove('pop');void tip.offsetWidth;tip.classList.add('pop')}
+const bx=box.getBoundingClientRect(),x=e.clientX-bx.left;tip.hidden=gl.hidden=false;gl.style.left=x+'px';tip.style.left=Math.min(x+14,bx.width-190)+'px';
+tip.innerHTML=`<b>${new Date(FL.s0+k*DAY).toUTCString().slice(5,16)}</b><br><span style="color:#22d3ee">Opened ${FL.a[k]}</span> · <span style="color:${C.vi}">Closed ${FL.b[k]}</span><br><span style="color:var(--mute)">7-day avg ${fmt(FL.ma[k],1)} in, ${fmt(FL.mb[k],1)} out</span>`}
+function simulate(H,N,vel,sur){const R=rng(2026),{ages,arr,sv}=ST,S=sv.Sf,mA=Math.ceil(Math.max(0,...ages))+H+3,hz=new Float64Array(mA);
+for(let a=0;a<mA;a++){const s0=S(a);const p=s0<1e-12?1:Math.min(1,Math.max(0,1-S(a+1)/s0));hz[a]=1-Math.pow(1-p,vel)}
+const mu=arr.mu*sur,samp=arr.nb?()=>pois(gam(arr.r,mu/arr.r,R),R):()=>pois(mu,R),P=new Int32Array(N*(H+1));
+for(let s=0;s<N;s++){let a=Float64Array.from(ages),len=a.length;P[s*(H+1)]=len;
+for(let d=1;d<=H;d++){let j=0;for(let i=0;i<len;i++){if(R()>=hz[Math.floor(a[i])])a[j++]=a[i]+1}len=j;const nw=samp();
+if(len+nw>a.length){const b=new Float64Array((len+nw)*2);b.set(a.subarray(0,len));a=b}for(let i=0;i<nw;i++)a[len++]=0;P[s*(H+1)+d]=len}}
+const q=(a,p)=>a[Math.min(a.length-1,Math.floor(p*a.length))],o={lo10:[],lo25:[],md:[],up75:[],up90:[]};
+for(let d=0;d<=H;d++){const c=new Array(N);for(let s=0;s<N;s++)c[s]=P[s*(H+1)+d];c.sort((x,y)=>x-y);o.lo10.push(q(c,.1));o.lo25.push(q(c,.25));o.md.push(q(c,.5));o.up75.push(q(c,.75));o.up90.push(q(c,.9))}
+o.fin=[];for(let s=0;s<N;s++)o.fin.push(P[s*(H+1)+H]);const st=ages.length,m=mean(o.fin);o.sdv=Math.sqrt(o.fin.reduce((a,b)=>a+(b-m)**2,0)/(N-1));o.pGrow=o.fin.filter(v=>v>st).length/N;return o}
+function drawFan(d){const H=d.md.length-1,h=ST.hist.slice(-Math.max(30,H*2)),st=ST.ages.length,th=$('#th').value,pts=a=>a.map((v,i)=>[i,v]);
+const it=[{t:'vline',x:0},{t:'area',up:pts(d.up90),lo:pts(d.lo10),c:C.vi},{t:'area',up:pts(d.up75),lo:pts(d.lo25),c:C.vi},{pts:[...h,[0,st]],c:'#e2e8f0'},{pts:pts(d.up90),c:C.am,d:1},{pts:pts(d.md),c:C.vi}];
+if(th!=='')it.push({pts:[[h[0][0],+th],[H,+th]],c:C.am,d:1});
+const ym=Math.max(...d.up90,...h.map(p=>p[1]),th===''?0:+th)*1.1;
+$('#fan').innerHTML=chart({label:'Open backlog history with a forecast cone',x:[h[0][0],H],y:[0,Math.ceil(ym)],xl:'days from today (negative = past)',items:it})}
+function tween(to){const from=CUR&&CUR.md.length===to.md.length?CUR:null;CUR=to;cancelAnimationFrame(TW);if(!from||reduced())return drawFan(to);
+const t0=performance.now(),ks=['lo10','lo25','md','up75','up90'],step=now=>{const p=Math.min(1,(now-t0)/450),e=ease(p),d={};ks.forEach(k=>d[k]=to[k].map((v,i)=>from[k][i]+(v-from[k][i])*e));drawFan(d);if(p<1)TW=requestAnimationFrame(step)};TW=requestAnimationFrame(step)}
+function renderRes(d){const H=d.md.length-1,th=$('#th').value,r=[['Median outcome (P50)',fmt(d.md[H],0)],['Worst case (P90)',fmt(d.up90[H],0)],['Chance backlog grows',pct(d.pGrow)]];
+if(th!=='')r.push(['Chance of reaching '+th,pct(d.fin.filter(v=>v>=+th).length/d.fin.length)]);r.push(['Simulation error','±'+fmt(d.sdv/Math.sqrt(d.fin.length),2)]);
+$('#fs').innerHTML=r.map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}
+function setScore(sc){const from=SCORE;SCORE=sc;$('#rg').style.strokeDashoffset=326.7*(1-sc/100);const s=sc>=70?'good':sc>=45?'warn':'bad';
+$('#hc').dataset.s=s;$('#hl').textContent={good:'Healthy',warn:'Watch closely',bad:'At risk'}[s];
+$('#hp').textContent={good:'The team is keeping up and the backlog is stable.',warn:'Issues are arriving close to the pace they are resolved.',bad:'The backlog is likely to keep growing at the current pace.'}[s];
+const t0=performance.now(),el=$('#hs'),step=now=>{const p=reduced()?1:Math.min(1,(now-t0)/900);el.textContent=Math.round(from+(sc-from)*ease(p));if(p<1)requestAnimationFrame(step)};requestAnimationFrame(step)}
+function health(d){const{ages,arr,sv,days}=ST,sa=[...ages].sort((a,b)=>a-b),medAge=sa[sa.length>>1]||0,medRes=Number.isFinite(sv.med)?sv.med:mean(sv.t),vel=$('#vel').value/100,sur=$('#sur').value/100;
+const res=sv.D/days*vel,inn=Math.max(arr.mu*sur,1e-9);
+setScore(Math.round(Math.max(0,Math.min(100,50*Math.min(1,res/inn)+30*(1-Math.min(1,medAge/(4*medRes)))+20*(1-d.pGrow)))))}
+function scenario(N){const d=simulate(HZ,N,$('#vel').value/100,$('#sur').value/100);$('#vo').textContent=$('#vel').value+'%';$('#so').textContent=$('#sur').value+'%';tween(d);renderRes(d);health(d)}
+let raf=0;const live=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>scenario(700))};
+function run(){const a=Date.parse($('#d0').value),b=Date.parse($('#d1').value)+DAY,is=ALL.filter(i=>i.c>=a&&i.c<b);
+analyze(is);$('#empty').hidden=true;$('#app').hidden=false;if(!$$('.view:not([hidden])').length)view(1);
+renderStats();renderFlow();renderArr();renderSurv();CUR=null;SCORE=0;$('#rg').style.strokeDashoffset=326.7;HZ=+$('#hz').value;scenario(2000);
+for(const id of['#flow','#fan']){$(id).classList.add('draw');setTimeout(()=>$(id).classList.remove('draw'),1500)}}
+async function load(rows,name){const st=$('#status');skel(true);await new Promise(r=>setTimeout(r,90));
+try{const{is,pr,bad}=normalize(rows);ALL=is;let mn=1/0,mx=0;for(const i of is){mn=Math.min(mn,i.c);mx=Math.max(mx,i.ob)}
+$('#d0').value=iso(mn);$('#d1').value=iso(mx);run();st.className='';st.innerHTML=`<span class="mono">${name}</span> · ${is.length} issues${pr?`, ${pr} pull requests excluded`:''}${bad?`, ${bad} rows skipped`:''}`}
+catch(e){st.className='err';st.textContent=e.message}finally{skel(false)}}
+async function reRun(){skel(true);await new Promise(r=>setTimeout(r,60));try{run();$('#status').className=''}catch(e){$('#status').className='err';$('#status').textContent=e.message}finally{skel(false)}}
+async function fetchRepo(){const st=$('#status'),repo=$('#repo').value.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\/+$/,'');
+if(!/^[\w.-]+\/[\w.-]+$/.test(repo)){st.className='err';st.textContent='Enter the repository as owner/name, for example r-lib/cli.';return}
+st.className='';st.textContent='Fetching issues from '+repo+'…';
+const local=['localhost','127.0.0.1'].includes(location.hostname),rows=[];let capped=false;
+try{for(let p=1;p<=30;p++){const url=local?`/issues?repo=${repo}&page=${p}`:`https://api.github.com/repos/${repo}/issues?state=all&per_page=100&page=${p}`;
+const r=await fetch(url);if(!r.ok)throw new Error(r.status==404?'Repository not found, or it is private.':r.status==403?'GitHub’s rate limit was reached. Set GITHUB_TOKEN and use the R server, or try again later.':'GitHub returned an error ('+r.status+').');
+const a=await r.json(),now=new Date().toISOString();
+for(const i of a)rows.push({issue_id:i.number,created_at:i.created_at,state:i.state,closed_at:i.closed_at||'',updated_at:i.updated_at,is_pull_request:i.pull_request?'true':'false',observed_at:now});
+if(a.length<100)break;if(p==30)capped=true}}
+catch(e){st.className='err';st.textContent=e instanceof TypeError?'Couldn’t reach GitHub. Check your connection.':e.message;return}
+await load(rows,repo);if(capped)st.textContent+=' Only the 3,000 most recently updated items were fetched, so older history is missing.'}
+
+$$('.side button').forEach(b=>b.onclick=()=>view(b.dataset.v));view(1);
+$('#gh').onclick=fetchRepo;$('#repo').onkeydown=e=>{if(e.key==='Enter')fetchRepo()};
+$('#demo').onclick=()=>load(demoRows(),'sample data');
+$('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{load(parseCSV(r.result),f.name)}catch(x){$('#status').className='err';$('#status').textContent='That file couldn’t be read as a CSV.'}};r.readAsText(f);e.target.value=''};
+$('#d0').onchange=$('#d1').onchange=()=>ST.is&&reRun();
+$('#vel').oninput=$('#sur').oninput=live;$('#th').oninput=()=>{if(CUR){drawFan(CUR);scenario(700)}};
+$('#hz').onchange=()=>{HZ=+$('#hz').value;CUR=null;scenario(1500)};
+$('#rs').onclick=()=>{$('#vel').value=$('#sur').value=100;scenario(1500)};
+$('#advt').onchange=e=>{$('#adv').classList.toggle('on',e.target.checked);$('#adv>div').toggleAttribute('inert',!e.target.checked)};
+$('#rep').onclick=()=>ST.is?window.print():($('#status').textContent='Load a repository first, then generate the report.');
+$('#flowc').onmousemove=tipMove;$('#flowc').onmouseleave=()=>{$('#tip').hidden=$('#gl').hidden=true};
+</script></body></html>
